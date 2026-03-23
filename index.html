@@ -54,11 +54,10 @@
             margin-bottom: 20px;
         }
 
-        /* Menu de Seleção de Música */
         .song-selector {
             width: 100%;
             padding: 12px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             background-color: #2c2c2c;
             color: white;
             border: 1px solid #444;
@@ -67,7 +66,37 @@
             outline: none;
         }
 
-        /* Botão Play/Pause Central */
+        /* --- BARRA DE PROGRESSO --- */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            margin: 0 10px;
+            -webkit-appearance: none;
+            background: #444;
+            height: 6px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        /* Estilo da "bolinha" da barra */
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
         .play-btn {
             background-color: var(--primary);
             color: #000;
@@ -96,7 +125,6 @@
             color: white;
         }
 
-        /* Controles de Faixas (Mute) */
         .track-control {
             display: flex;
             justify-content: space-between;
@@ -127,7 +155,6 @@
             color: var(--danger);
         }
 
-        /* Switch (Botão de Alternância) */
         .switch {
             position: relative;
             display: inline-block;
@@ -184,8 +211,13 @@
         <h1>Ensaio Mixer</h1>
         <p class="subtitle">Selecione a música e controle as faixas</p>
 
-        <select id="seletor-musica" class="song-selector">
-            </select>
+        <select id="seletor-musica" class="song-selector"></select>
+
+        <div class="progress-container">
+            <span id="tempo-atual">0:00</span>
+            <input type="range" id="barra-progresso" class="progress-bar" min="0" max="100" value="0">
+            <span id="tempo-total">0:00</span>
+        </div>
 
         <p id="loading-msg">Carregando áudios...</p>
 
@@ -220,7 +252,6 @@
 
     <script>
         // --- AQUI FICA O SEU REPERTÓRIO ---
-        // Para adicionar mais, basta copiar um bloco { ... } e colar embaixo.
         const playlist = [
             {
                 nome: "meu maior amor - nivea soares",
@@ -255,9 +286,14 @@
         const statusMetronomo = document.getElementById('status-metronomo');
         const loadingMsg = document.getElementById('loading-msg');
 
-        let isPlaying = false;
+        // Variáveis da Barra de Progresso
+        const barraProgresso = document.getElementById('barra-progresso');
+        const tempoAtualDisplay = document.getElementById('tempo-atual');
+        const tempoTotalDisplay = document.getElementById('tempo-total');
 
-        // Função para preencher o menu com as músicas da playlist
+        let isPlaying = false;
+        let isArrastandoBarra = false; // Pra saber se o usuário está puxando a barra
+
         function carregarMenu() {
             playlist.forEach((musica, index) => {
                 const opcao = document.createElement('option');
@@ -265,14 +301,10 @@
                 opcao.textContent = musica.nome;
                 seletorMusica.appendChild(opcao);
             });
-            
-            // Carrega a primeira música ao abrir o app
             trocarMusica(0);
         }
 
-        // Função para trocar os arquivos de áudio quando escolhe no menu
         function trocarMusica(index) {
-            // Pausa se estiver tocando
             if (isPlaying) {
                 pauseAll();
                 isPlaying = false;
@@ -284,21 +316,23 @@
             audioBase.src = musicaEscolhida.base;
             audioVoz.src = musicaEscolhida.voz;
             audioMetronomo.src = musicaEscolhida.metronomo;
+            
+            // Reseta a barra ao trocar de música
+            barraProgresso.value = 0;
+            tempoAtualDisplay.textContent = "0:00";
+            tempoTotalDisplay.textContent = "0:00";
         }
 
-        // Evento: Quando o usuário muda a música no menu
         seletorMusica.addEventListener('change', (e) => {
             trocarMusica(e.target.value);
         });
 
-        // Função para pausar todos
         function pauseAll() {
             audioBase.pause();
             audioVoz.pause();
             audioMetronomo.pause();
         }
 
-        // Controle do botão Play/Pause
         btnPlay.addEventListener('click', () => {
             if (isPlaying) {
                 pauseAll();
@@ -327,7 +361,6 @@
             isPlaying = !isPlaying;
         });
 
-        // Controle de Mute Voz
         toggleVoz.addEventListener('change', (e) => {
             if (e.target.checked) {
                 audioVoz.muted = false;
@@ -340,7 +373,6 @@
             }
         });
 
-        // Controle de Mute Metrônomo
         toggleMetronomo.addEventListener('change', (e) => {
             if (e.target.checked) {
                 audioMetronomo.muted = false;
@@ -359,6 +391,47 @@
             btnPlay.classList.remove('playing');
             pauseAll();
             audioBase.currentTime = 0;
+            barraProgresso.value = 0;
+        });
+
+        // --- LÓGICA DA BARRA DE PROGRESSO ---
+
+        // Formata os segundos para ficar no formato 0:00
+        function formatarTempo(segundos) {
+            if (isNaN(segundos)) return "0:00";
+            const min = Math.floor(segundos / 60);
+            const seg = Math.floor(segundos % 60);
+            return `${min}:${seg < 10 ? '0' : ''}${seg}`;
+        }
+
+        // Quando a música carrega, pega o tempo total dela
+        audioBase.addEventListener('loadedmetadata', () => {
+            tempoTotalDisplay.textContent = formatarTempo(audioBase.duration);
+        });
+
+        // Conforme a música toca, a barra anda sozinha
+        audioBase.addEventListener('timeupdate', () => {
+            if (!isArrastandoBarra && audioBase.duration) {
+                const porcentagem = (audioBase.currentTime / audioBase.duration) * 100;
+                barraProgresso.value = porcentagem;
+                tempoAtualDisplay.textContent = formatarTempo(audioBase.currentTime);
+            }
+        });
+
+        // Quando o usuário clica e segura a barra
+        barraProgresso.addEventListener('input', () => {
+            isArrastandoBarra = true;
+            const tempoCalculado = (barraProgresso.value / 100) * audioBase.duration;
+            tempoAtualDisplay.textContent = formatarTempo(tempoCalculado);
+        });
+
+        // Quando o usuário solta a barra (Avança ou retrocede as 3 faixas juntas)
+        barraProgresso.addEventListener('change', () => {
+            const novoTempo = (barraProgresso.value / 100) * audioBase.duration;
+            audioBase.currentTime = novoTempo;
+            audioVoz.currentTime = novoTempo;
+            audioMetronomo.currentTime = novoTempo;
+            isArrastandoBarra = false;
         });
 
         // Inicia o app preenchendo o menu
