@@ -51,7 +51,20 @@
         p.subtitle {
             color: var(--text-muted);
             font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* Menu de Seleção de Música */
+        .song-selector {
+            width: 100%;
+            padding: 12px;
             margin-bottom: 30px;
+            background-color: #2c2c2c;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
         }
 
         /* Botão Play/Pause Central */
@@ -70,6 +83,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .play-btn:active {
@@ -167,7 +182,10 @@
 
     <div class="container">
         <h1>Ensaio Mixer</h1>
-        <p class="subtitle">Controle as faixas em tempo real</p>
+        <p class="subtitle">Selecione a música e controle as faixas</p>
+
+        <select id="seletor-musica" class="song-selector">
+            </select>
 
         <p id="loading-msg">Carregando áudios...</p>
 
@@ -196,11 +214,34 @@
         </div>
     </div>
 
-    <audio id="audio-base" src="base.mp3" preload="auto"></audio>
-    <audio id="audio-voz" src="voz.mp3" preload="auto"></audio>
-    <audio id="audio-metronomo" src="metronomo.mp3" preload="auto"></audio>
+    <audio id="audio-base" preload="auto"></audio>
+    <audio id="audio-voz" preload="auto"></audio>
+    <audio id="audio-metronomo" preload="auto"></audio>
 
     <script>
+        // --- AQUI FICA O SEU REPERTÓRIO ---
+        // Para adicionar mais, basta copiar um bloco { ... } e colar embaixo.
+        const playlist = [
+            {
+                nome: "meu maior amor - nivea soares",
+                base: "meu maior amor - nivea soares/base.mp3",
+                voz: "meu maior amor - nivea soares/voz.mp3",
+                metronomo: "meu maior amor - nivea soares/metronomo.mp3"
+            },
+            {
+                nome: "Música 2 (Outra Música)",
+                base: "musica2/base.mp3",
+                voz: "musica2/voz.mp3",
+                metronomo: "musica2/metronomo.mp3"
+            },
+            {
+                nome: "Música 3 (Mais Uma)",
+                base: "musica3/base.mp3",
+                voz: "musica3/voz.mp3",
+                metronomo: "musica3/metronomo.mp3"
+            }
+        ];
+
         const audioBase = document.getElementById('audio-base');
         const audioVoz = document.getElementById('audio-voz');
         const audioMetronomo = document.getElementById('audio-metronomo');
@@ -208,6 +249,7 @@
         const btnPlay = document.getElementById('btn-play');
         const toggleVoz = document.getElementById('toggle-voz');
         const toggleMetronomo = document.getElementById('toggle-metronomo');
+        const seletorMusica = document.getElementById('seletor-musica');
         
         const statusVoz = document.getElementById('status-voz');
         const statusMetronomo = document.getElementById('status-metronomo');
@@ -215,18 +257,41 @@
 
         let isPlaying = false;
 
-        // Função para garantir que todos os áudios toquem juntos
-        function playAll() {
-            // Força o alinhamento de tempo baseando-se na faixa principal
-            const currentTime = audioBase.currentTime;
-            audioVoz.currentTime = currentTime;
-            audioMetronomo.currentTime = currentTime;
-
-            audioBase.play();
-            audioVoz.play();
-            audioMetronomo.play();
+        // Função para preencher o menu com as músicas da playlist
+        function carregarMenu() {
+            playlist.forEach((musica, index) => {
+                const opcao = document.createElement('option');
+                opcao.value = index;
+                opcao.textContent = musica.nome;
+                seletorMusica.appendChild(opcao);
+            });
+            
+            // Carrega a primeira música ao abrir o app
+            trocarMusica(0);
         }
 
+        // Função para trocar os arquivos de áudio quando escolhe no menu
+        function trocarMusica(index) {
+            // Pausa se estiver tocando
+            if (isPlaying) {
+                pauseAll();
+                isPlaying = false;
+                btnPlay.textContent = 'PLAY';
+                btnPlay.classList.remove('playing');
+            }
+
+            const musicaEscolhida = playlist[index];
+            audioBase.src = musicaEscolhida.base;
+            audioVoz.src = musicaEscolhida.voz;
+            audioMetronomo.src = musicaEscolhida.metronomo;
+        }
+
+        // Evento: Quando o usuário muda a música no menu
+        seletorMusica.addEventListener('change', (e) => {
+            trocarMusica(e.target.value);
+        });
+
+        // Função para pausar todos
         function pauseAll() {
             audioBase.pause();
             audioVoz.pause();
@@ -240,9 +305,8 @@
                 btnPlay.textContent = 'PLAY';
                 btnPlay.classList.remove('playing');
             } else {
-                loadingMsg.style.display = 'block'; // Mostra msg caso a internet no celular atrase o play
+                loadingMsg.style.display = 'block'; 
                 
-                // Promessa para tocar os áudios
                 Promise.all([
                     audioBase.play(),
                     audioVoz.play(),
@@ -252,7 +316,6 @@
                     btnPlay.textContent = 'PAUSE';
                     btnPlay.classList.add('playing');
                     
-                    // Realinha o tempo logo após o play iniciar
                     const syncTime = audioBase.currentTime;
                     audioVoz.currentTime = syncTime;
                     audioMetronomo.currentTime = syncTime;
@@ -264,33 +327,32 @@
             isPlaying = !isPlaying;
         });
 
-        // Controle de Mute para a Voz
+        // Controle de Mute Voz
         toggleVoz.addEventListener('change', (e) => {
             if (e.target.checked) {
                 audioVoz.muted = false;
                 statusVoz.textContent = 'Ligado';
                 statusVoz.classList.remove('muted');
             } else {
-                audioVoz.muted = true; // Apenas muta, não pausa!
+                audioVoz.muted = true;
                 statusVoz.textContent = 'Mutado';
                 statusVoz.classList.add('muted');
             }
         });
 
-        // Controle de Mute para o Metrônomo
+        // Controle de Mute Metrônomo
         toggleMetronomo.addEventListener('change', (e) => {
             if (e.target.checked) {
                 audioMetronomo.muted = false;
                 statusMetronomo.textContent = 'Ligado';
                 statusMetronomo.classList.remove('muted');
             } else {
-                audioMetronomo.muted = true; // Apenas muta, não pausa!
+                audioMetronomo.muted = true;
                 statusMetronomo.textContent = 'Mutado';
                 statusMetronomo.classList.add('muted');
             }
         });
 
-        // Quando a música base acabar, pausa tudo e reseta o botão
         audioBase.addEventListener('ended', () => {
             isPlaying = false;
             btnPlay.textContent = 'PLAY';
@@ -298,6 +360,9 @@
             pauseAll();
             audioBase.currentTime = 0;
         });
+
+        // Inicia o app preenchendo o menu
+        carregarMenu();
     </script>
 </body>
 </html>
