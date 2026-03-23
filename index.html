@@ -124,14 +124,22 @@
             color: white;
         }
 
+        /* --- CONTROLES DE FAIXA (MIXER) --- */
         .track-control {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             background-color: #2c2c2c;
             padding: 15px 20px;
             border-radius: 12px;
             margin-bottom: 15px;
+        }
+
+        .track-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 12px;
         }
 
         .track-info {
@@ -152,6 +160,34 @@
 
         .track-status.muted {
             color: var(--danger);
+        }
+
+        /* --- CONTROLES DE VOLUME --- */
+        .volume-control {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .volume-slider {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            background: #444;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
         }
 
         .switch {
@@ -223,25 +259,52 @@
         <button class="play-btn" id="btn-play">PLAY</button>
 
         <div class="track-control">
-            <div class="track-info">
-                <span class="track-name">Voz</span>
-                <span class="track-status" id="status-voz">Ligado</span>
+            <div class="track-header">
+                <div class="track-info">
+                    <span class="track-name">Base Instrumental</span>
+                </div>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-voz" checked>
-                <span class="slider"></span>
-            </label>
+            <div class="volume-control">
+                <span>🔈</span>
+                <input type="range" id="vol-base" class="volume-slider" min="0" max="1" step="0.01" value="1">
+                <span>🔊</span>
+            </div>
         </div>
 
         <div class="track-control">
-            <div class="track-info">
-                <span class="track-name">Metrônomo</span>
-                <span class="track-status" id="status-metronomo">Ligado</span>
+            <div class="track-header">
+                <div class="track-info">
+                    <span class="track-name">Voz</span>
+                    <span class="track-status" id="status-voz">Ligado</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-voz" checked>
+                    <span class="slider"></span>
+                </label>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-metronomo" checked>
-                <span class="slider"></span>
-            </label>
+            <div class="volume-control">
+                <span>🔈</span>
+                <input type="range" id="vol-voz" class="volume-slider" min="0" max="1" step="0.01" value="1">
+                <span>🔊</span>
+            </div>
+        </div>
+
+        <div class="track-control">
+            <div class="track-header">
+                <div class="track-info">
+                    <span class="track-name">Metrônomo</span>
+                    <span class="track-status" id="status-metronomo">Ligado</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-metronomo" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="volume-control">
+                <span>🔈</span>
+                <input type="range" id="vol-metronomo" class="volume-slider" min="0" max="1" step="0.01" value="1">
+                <span>🔊</span>
+            </div>
         </div>
     </div>
 
@@ -253,7 +316,7 @@
         // --- NÃO SE ESQUEÇA DE COLOCAR SUAS MÚSICAS AQUI NOVAMENTE ---
         const playlist = [
             {
-                nome: "meu maior amor - nivea soares",
+               nome: "meu maior amor - nivea soares",
                 base: "meu maior amor - nivea soares/base.mp3",
                 voz: "meu maior amor - nivea soares/voz.mp3",
                 metronomo: "meu maior amor - nivea soares/metronomo.mp3"
@@ -282,6 +345,11 @@
         const barraProgresso = document.getElementById('barra-progresso');
         const tempoAtualDisplay = document.getElementById('tempo-atual');
         const tempoTotalDisplay = document.getElementById('tempo-total');
+
+        // Controles de Volume
+        const volBase = document.getElementById('vol-base');
+        const volVoz = document.getElementById('vol-voz');
+        const volMetronomo = document.getElementById('vol-metronomo');
 
         let isPlaying = false;
         let isArrastandoBarra = false; 
@@ -352,10 +420,9 @@
             isPlaying = !isPlaying;
         });
 
-        // --- CORREÇÃO DA SINCRONIA DA VOZ AQUI ---
+        // Eventos de Mute
         toggleVoz.addEventListener('change', (e) => {
             if (e.target.checked) {
-                // Força a voz a pular pro tempo da base antes de desmutar
                 audioVoz.currentTime = audioBase.currentTime; 
                 audioVoz.muted = false;
                 statusVoz.textContent = 'Ligado';
@@ -367,10 +434,8 @@
             }
         });
 
-        // --- CORREÇÃO DA SINCRONIA DO METRÔNOMO AQUI ---
         toggleMetronomo.addEventListener('change', (e) => {
             if (e.target.checked) {
-                // Força o metrônomo a pular pro tempo da base antes de desmutar
                 audioMetronomo.currentTime = audioBase.currentTime; 
                 audioMetronomo.muted = false;
                 statusMetronomo.textContent = 'Ligado';
@@ -382,6 +447,20 @@
             }
         });
 
+        // --- EVENTOS DE VOLUME AQUI ---
+        volBase.addEventListener('input', (e) => {
+            audioBase.volume = e.target.value;
+        });
+
+        volVoz.addEventListener('input', (e) => {
+            audioVoz.volume = e.target.value;
+        });
+
+        volMetronomo.addEventListener('input', (e) => {
+            audioMetronomo.volume = e.target.value;
+        });
+
+        // Restante dos eventos (Barra de progresso e afins)
         audioBase.addEventListener('ended', () => {
             isPlaying = false;
             btnPlay.textContent = 'PLAY';
