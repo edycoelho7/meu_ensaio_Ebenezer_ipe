@@ -86,7 +86,6 @@
             outline: none;
         }
 
-        /* Estilo da "bolinha" da barra */
         .progress-bar::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -251,7 +250,7 @@
     <audio id="audio-metronomo" preload="auto"></audio>
 
     <script>
-        // --- AQUI FICA O SEU REPERTÓRIO ---
+        // --- NÃO SE ESQUEÇA DE COLOCAR SUAS MÚSICAS AQUI NOVAMENTE ---
         const playlist = [
             {
                 nome: "meu maior amor - nivea soares",
@@ -270,6 +269,7 @@
                 base: "musica3/base.mp3",
                 voz: "musica3/voz.mp3",
                 metronomo: "musica3/metronomo.mp3"
+
             }
         ];
 
@@ -286,13 +286,12 @@
         const statusMetronomo = document.getElementById('status-metronomo');
         const loadingMsg = document.getElementById('loading-msg');
 
-        // Variáveis da Barra de Progresso
         const barraProgresso = document.getElementById('barra-progresso');
         const tempoAtualDisplay = document.getElementById('tempo-atual');
         const tempoTotalDisplay = document.getElementById('tempo-total');
 
         let isPlaying = false;
-        let isArrastandoBarra = false; // Pra saber se o usuário está puxando a barra
+        let isArrastandoBarra = false; 
 
         function carregarMenu() {
             playlist.forEach((musica, index) => {
@@ -317,7 +316,6 @@
             audioVoz.src = musicaEscolhida.voz;
             audioMetronomo.src = musicaEscolhida.metronomo;
             
-            // Reseta a barra ao trocar de música
             barraProgresso.value = 0;
             tempoAtualDisplay.textContent = "0:00";
             tempoTotalDisplay.textContent = "0:00";
@@ -361,8 +359,11 @@
             isPlaying = !isPlaying;
         });
 
+        // --- CORREÇÃO DA SINCRONIA DA VOZ AQUI ---
         toggleVoz.addEventListener('change', (e) => {
             if (e.target.checked) {
+                // Força a voz a pular pro tempo da base antes de desmutar
+                audioVoz.currentTime = audioBase.currentTime; 
                 audioVoz.muted = false;
                 statusVoz.textContent = 'Ligado';
                 statusVoz.classList.remove('muted');
@@ -373,69 +374,6 @@
             }
         });
 
+        // --- CORREÇÃO DA SINCRONIA DO METRÔNOMO AQUI ---
         toggleMetronomo.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                audioMetronomo.muted = false;
-                statusMetronomo.textContent = 'Ligado';
-                statusMetronomo.classList.remove('muted');
-            } else {
-                audioMetronomo.muted = true;
-                statusMetronomo.textContent = 'Mutado';
-                statusMetronomo.classList.add('muted');
-            }
-        });
-
-        audioBase.addEventListener('ended', () => {
-            isPlaying = false;
-            btnPlay.textContent = 'PLAY';
-            btnPlay.classList.remove('playing');
-            pauseAll();
-            audioBase.currentTime = 0;
-            barraProgresso.value = 0;
-        });
-
-        // --- LÓGICA DA BARRA DE PROGRESSO ---
-
-        // Formata os segundos para ficar no formato 0:00
-        function formatarTempo(segundos) {
-            if (isNaN(segundos)) return "0:00";
-            const min = Math.floor(segundos / 60);
-            const seg = Math.floor(segundos % 60);
-            return `${min}:${seg < 10 ? '0' : ''}${seg}`;
-        }
-
-        // Quando a música carrega, pega o tempo total dela
-        audioBase.addEventListener('loadedmetadata', () => {
-            tempoTotalDisplay.textContent = formatarTempo(audioBase.duration);
-        });
-
-        // Conforme a música toca, a barra anda sozinha
-        audioBase.addEventListener('timeupdate', () => {
-            if (!isArrastandoBarra && audioBase.duration) {
-                const porcentagem = (audioBase.currentTime / audioBase.duration) * 100;
-                barraProgresso.value = porcentagem;
-                tempoAtualDisplay.textContent = formatarTempo(audioBase.currentTime);
-            }
-        });
-
-        // Quando o usuário clica e segura a barra
-        barraProgresso.addEventListener('input', () => {
-            isArrastandoBarra = true;
-            const tempoCalculado = (barraProgresso.value / 100) * audioBase.duration;
-            tempoAtualDisplay.textContent = formatarTempo(tempoCalculado);
-        });
-
-        // Quando o usuário solta a barra (Avança ou retrocede as 3 faixas juntas)
-        barraProgresso.addEventListener('change', () => {
-            const novoTempo = (barraProgresso.value / 100) * audioBase.duration;
-            audioBase.currentTime = novoTempo;
-            audioVoz.currentTime = novoTempo;
-            audioMetronomo.currentTime = novoTempo;
-            isArrastandoBarra = false;
-        });
-
-        // Inicia o app preenchendo o menu
-        carregarMenu();
-    </script>
-</body>
-</html>
+            if (
