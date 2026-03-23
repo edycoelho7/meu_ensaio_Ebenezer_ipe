@@ -259,16 +259,10 @@
                 metronomo: "meu maior amor - nivea soares/metronomo.mp3"
             },
             {
-                nome: "Música 2 (Outra Música)",
+                nome: "Música 2",
                 base: "musica2/base.mp3",
                 voz: "musica2/voz.mp3",
                 metronomo: "musica2/metronomo.mp3"
-            },
-            {
-                nome: "Música 3 (Mais Uma)",
-                base: "musica3/base.mp3",
-                voz: "musica3/voz.mp3",
-                metronomo: "musica3/metronomo.mp3"
             }
         ];
 
@@ -375,4 +369,62 @@
 
         // --- CORREÇÃO DA SINCRONIA DO METRÔNOMO AQUI ---
         toggleMetronomo.addEventListener('change', (e) => {
-            if (
+            if (e.target.checked) {
+                // Força o metrônomo a pular pro tempo da base antes de desmutar
+                audioMetronomo.currentTime = audioBase.currentTime; 
+                audioMetronomo.muted = false;
+                statusMetronomo.textContent = 'Ligado';
+                statusMetronomo.classList.remove('muted');
+            } else {
+                audioMetronomo.muted = true;
+                statusMetronomo.textContent = 'Mutado';
+                statusMetronomo.classList.add('muted');
+            }
+        });
+
+        audioBase.addEventListener('ended', () => {
+            isPlaying = false;
+            btnPlay.textContent = 'PLAY';
+            btnPlay.classList.remove('playing');
+            pauseAll();
+            audioBase.currentTime = 0;
+            barraProgresso.value = 0;
+        });
+
+        function formatarTempo(segundos) {
+            if (isNaN(segundos)) return "0:00";
+            const min = Math.floor(segundos / 60);
+            const seg = Math.floor(segundos % 60);
+            return `${min}:${seg < 10 ? '0' : ''}${seg}`;
+        }
+
+        audioBase.addEventListener('loadedmetadata', () => {
+            tempoTotalDisplay.textContent = formatarTempo(audioBase.duration);
+        });
+
+        audioBase.addEventListener('timeupdate', () => {
+            if (!isArrastandoBarra && audioBase.duration) {
+                const porcentagem = (audioBase.currentTime / audioBase.duration) * 100;
+                barraProgresso.value = porcentagem;
+                tempoAtualDisplay.textContent = formatarTempo(audioBase.currentTime);
+            }
+        });
+
+        barraProgresso.addEventListener('input', () => {
+            isArrastandoBarra = true;
+            const tempoCalculado = (barraProgresso.value / 100) * audioBase.duration;
+            tempoAtualDisplay.textContent = formatarTempo(tempoCalculado);
+        });
+
+        barraProgresso.addEventListener('change', () => {
+            const novoTempo = (barraProgresso.value / 100) * audioBase.duration;
+            audioBase.currentTime = novoTempo;
+            audioVoz.currentTime = novoTempo;
+            audioMetronomo.currentTime = novoTempo;
+            isArrastandoBarra = false;
+        });
+
+        carregarMenu();
+    </script>
+</body>
+</html>
