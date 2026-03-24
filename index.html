@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ensaio Ebenezer Ipe • EBNZ IPE</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <!-- Logo EBNZ (círculo) -->
+      <img class="logo-ebnz" src="ebnz.png" alt="Logo da Igreja" style="width: 40px; height: 40px; object-fit: contain;">
+      <h1>Ensaio Ebenezer Ipe</h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- BUSCA + LISTA -->
+    <section class="card">
+      <label for="songSearch" class="lbl">Buscar música</label>
+      <input id="songSearch" type="text" placeholder="Digite parte do nome ou artista…" />
+      <ul id="songList" class="list"></ul>
+      <hr class="divider" />
+    </section>
+
+    <!-- DETALHES DA MÚSICA (sem texto 'Música selecionada') -->
+    <section class="card">
+      <div class="grid2">
+        <div>
+          <div id="songTitle" class="title-song">—</div>
+          <div id="songArtist" class="muted">—</div>
+        </div>
+        <div class="meta">
+          <div><span class="muted">BPM</span> <span id="bpmDisplay">—</span></div>
+          <div><span class="muted">Compasso</span> <span id="tsDisplay">—</span></div>
+        </div>
+      </div>
+
+      <div class="mt16">
+        <div class="row-head" style="margin-bottom: 8px;">
+          <span id="currentTimeDisplay" class="muted" style="font-size: 14px;">0:00</span>
+          <span id="durationDisplay" class="muted" style="font-size: 14px;">0:00</span>
+        </div>
+        <input id="progressBar" class="slider" type="range" min="0" max="100" value="0" step="0.1" />
+      </div>
+      <div class="grid2 mt16">
+        <button id="playBtn" class="btn primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true" style="margin-right:8px">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+          Play
+        </button>
+        <button id="stopBtn" class="btn">
+  	<svg width="14" height="14" viewBox="0 0 24 24" fill="white" aria-hidden="true" style="margin-right:6px">
+    	<path d="M6 6h12v12H6z"></path>
+  	</svg>
+ 	 Stop
+	</button>
+      </div>
+    </section>
+
+    <!-- MIXER (3 faixas) -->
+    <section class="card">
+      <!-- VOZ -->
+      <div class="row">
+        <div class="row-head">
+          <label class="lbl">Voz</label>
+          <span id="vozPct" class="muted">70%</span>
+        </div>
+        <input id="vozVol" class="slider" type="range" min="0" max="1" step="0.01" value="0.7" />
+      </div>
+
+      <!-- PLAYBACK -->
+      <div class="row">
+        <div class="row-head">
+          <label class="lbl">Playback</label>
+          <span id="playbackPct" class="muted">80%</span>
+        </div>
+        <input id="playbackVol" class="slider" type="range" min="0" max="1" step="0.01" value="0.8" />
+      </div>
+
+      <!-- METRÔNOMO -->
+      <div class="row">
+        <div class="row-head">
+          <label class="lbl">Metrônomo</label>
+          <span id="metroPct" class="muted">50%</span>
+        </div>
+        <input id="metroVol" class="slider" type="range" min="0" max="1" step="0.01" value="0.5" />
+      </div>
+    </section>
+
+    <!-- CAMPOS PARA O MOTOR (internos, não editáveis) -->
+    <input id="bpm" type="hidden" value="120" />
+    <input id="timeSig" type="hidden" value="4" />
+    <input id="offset" type="hidden" value="0.00" />
+  </main>
+
+  <footer class="footer muted">
+    <small>EBNZ • App de Ensaio — v1 (HTML/JS puro)</small>
+  </footer>
+
+  <script type="module" src="app/app.js"></script>
+</body>
+</html>

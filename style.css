@@ -1,0 +1,134 @@
+:root {
+  --bg: #000000;         /* Fundo preto puro */
+  --card: #0a0a0a;       /* Fundo das caixas super escuro */
+  --text: #ffffff;       /* Textos em branco puro */
+  --muted: #a1a1aa;      /* Textos secundários em cinza */
+
+  /* Minimalista (Branco puro para os destaques) */
+  --primary: #ffffff;    /* Cor principal (Botões) */
+  --primary-2: #e5e7eb;  /* Cor principal ao passar o mouse (Cinza bem clarinho) */
+
+  --border: #27272a;     /* Borda e fundo das barras em cinza escuro */
+  --accent: #ffffff;     
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* Layout */
+.container { max-width: 860px; margin: 0 auto; padding: 16px; }
+.topbar {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: linear-gradient(180deg, rgba(11,18,32,.85), rgba(11,18,32,.55));
+  backdrop-filter: blur(6px);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo-ebnz { width: 44px; height: 44px; }
+h1 { font-size: 22px; margin: 0; }
+
+.card {
+  background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(17,24,39,.78));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px; margin: 16px 0;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+.grid2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; align-items: center; }
+@media (max-width: 640px){ .grid2 { grid-template-columns: 1fr; } }
+
+.lbl { display: block; margin-bottom: 6px; }
+.muted { color: var(--muted); }
+.mt16 { margin-top: 16px; }
+.title-song { font-weight: 700; font-size: 20px; }
+.meta { text-align: right; display: grid; gap: 8px; justify-items: end; }
+
+.divider { border: none; height: 1px; background: var(--border); margin: 12px 0 0; }
+
+/* Lista (abaixo da busca) */
+.list { list-style: none; margin: 8px 0 0; padding: 0; }
+.list li {
+  padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 8px; background: #0f1522;
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+}
+.list li:hover, .list li:focus { background: #121b2d; outline: none; }
+.list li.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset; }
+
+/* Inputs e botões */
+input[type="text"] {
+  width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+  background: #0c1320; color: var(--text); outline: none;
+}
+.btn {
+  width: 100%; padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border);
+  background: #1a2233; color: var(--text); font-size: 16px; cursor: pointer;
+  transition: transform .02s ease, background .2s ease;
+}
+.btn.primary {
+  background-color: var(--primary);
+  color: #000000; /* Texto do botão fica preto */
+  font-weight: 600; /* Deixa o texto um pouquinho mais gordinho pra ler melhor */
+}
+
+/* NOVO: Força o ícone do Play/Pause a ficar preto também */
+.btn.primary svg {
+  fill: #000000 !important; 
+}
+.btn:active { transform: translateY(1px); }
+
+/* Mixer */
+.row { margin-top: 14px; }
+.row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+
+/* Slider com bolinha e preenchimento */
+.slider {
+  -webkit-appearance: none; width: 100%; height: 28px; background: transparent;
+}
+.slider::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--primary) var(--value, 50%),
+    #0a0f19 var(--value, 50%)
+  );
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--primary); border: 2px solid #ffffff; margin-top: -6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+}
+/* Firefox */
+.slider::-moz-range-track { height: 6px; background: #0a0f19; border-radius: 999px; }
+.slider::-moz-range-progress { height: 6px; background: var(--primary); border-radius: 999px; }
+.slider::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--primary); border: 2px solid #ffffff;
+}
+
+/* Rodapé */
+.footer { text-align: center; padding: 16px; border-top: 1px solid var(--border); opacity: .9; }
+
+/* Trilho preenchido (Branco até a bolinha, Cinza escuro depois) */
+input[type=range].slider::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, #ffffff var(--value, 0%), #27272a var(--value, 0%));
+}
+
+input[type=range].slider::-moz-range-track {
+  background: linear-gradient(to right, #ffffff var(--value, 0%), #27272a var(--value, 0%));
+}
+
+/* Bolinha da barra (Totalmente branca) */
+input[type=range].slider::-webkit-slider-thumb {
+  background: #ffffff;
+  border: 1px solid #e5e7eb; /* Bordinha quase invisível só pra dar volume */
+}
+
+input[type=range].slider::-moz-range-thumb {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
